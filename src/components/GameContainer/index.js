@@ -4,6 +4,7 @@ import { LooseContainer } from "../LooseContainer";
 import svg from "../../assets/icons/globe.svg";
 import { OptionsContainer } from "../OptionsContainer";
 import { useSelector } from "react-redux";
+import { useText } from "../../hooks/useText";
 
 const INTIAL_POINTS = 0;
 
@@ -14,6 +15,7 @@ export function GameContainer() {
   const [options, setOptions] = useState([]);
   const countriesData = useSelector((state) => state.countries.list);
   const [gameLoose, setLoose] = useState(false);
+  const text = useText();
 
   useEffect(() => {
     setAnswer(randomCountry());
@@ -97,10 +99,10 @@ export function GameContainer() {
           />
           <div className="w-full flex justify-between items-end">
             <h2 className="text-lg sm:text-2xl font-bold text-slate-700">
-              Guess the country ...
+              {text.gameContainer.title}
             </h2>
             <p className="text-md sm:text-lg font-semibold text-slate-400">
-              SCORE: {userPoints}
+              {text.gameContainer.points} {userPoints}
             </p>
           </div>
         </div>
@@ -118,7 +120,7 @@ export function GameContainer() {
           }`}
           onClick={handleNextRound}
         >
-          Next Round
+          {text.gameContainer.button}
         </button>
       </>
     );
