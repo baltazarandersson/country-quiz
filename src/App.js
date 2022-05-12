@@ -1,6 +1,14 @@
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { Game } from "./components/Game";
+import { fetchCountries } from "./slices/countries";
 
 function App() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchCountries());
+  }, []);
+
   return (
     <div className="min-w-full min-h-full flex items-center justify-center">
       <section className="flex flex-col items-start gap-4 min-w-full sm:min-w-[40%]">
