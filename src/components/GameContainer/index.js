@@ -3,19 +3,27 @@ import { getAllCountries } from "../../services/getAllCountries";
 import { LooseContainer } from "../LooseContainer";
 import svg from "../../assets/icons/globe.svg";
 import { OptionsContainer } from "../OptionsContainer";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useText } from "../../hooks/useText";
-
-const INTIAL_POINTS = 0;
+import {
+  decreaseLives,
+  increasePoints,
+  resetLives,
+  resetPoints,
+} from "../../slices/user";
+import { CountryInput } from "../CountryInput";
 
 export function GameContainer() {
-  const [userPoints, setUserPoints] = useState(INTIAL_POINTS);
+  const userPoints = useSelector((state) => state.user.points);
+  const difficulty = useSelector((state) => state.user.difficulty);
+  const countriesData = useSelector((state) => state.countries.list);
+  const lives = useSelector((state) => state.user.remainingLives);
   const [userAnswer, setUserAnswered] = useState({});
   const [answer, setAnswer] = useState();
   const [options, setOptions] = useState([]);
-  const countriesData = useSelector((state) => state.countries.list);
   const [gameLoose, setLoose] = useState(false);
   const text = useText();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setAnswer(randomCountry());
@@ -35,12 +43,17 @@ export function GameContainer() {
     let newOptions = new Array(4);
     const answerPosition = Math.floor(Math.random() * 4);
     newOptions[answerPosition] = answer;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i <= 3; i++) {
       if (i === answerPosition) {
         continue;
       }
-      newOptions[i] = randomCountry();
+      let generatedCountry = randomCountry();
+      while (generatedCountry.name.common === answer.name.common) {
+        generatedCountry = randomCountry();
+      }
+      newOptions[i] = generatedCountry;
     }
+
     setOptions(newOptions);
   }
 
@@ -56,7 +69,8 @@ export function GameContainer() {
       answeredCorrectly: undefined,
       answeredCountry: undefined,
     });
-    setUserPoints(INTIAL_POINTS);
+    dispatch(resetPoints());
+    dispatch(resetLives());
     nextRound();
     setLoose(false);
   }
@@ -70,17 +84,37 @@ export function GameContainer() {
     });
   }
 
-  function handleClick(option) {
+  function handleSumbit(option) {
+    const result = option === answer;
     setUserAnswered({
       answered: true,
-      answeredCorrectly: option === answer,
+      answeredCorrectly: result,
       answeredCountry: option,
     });
-    option === answer ? setUserPoints((points) => points + 1) : setLoose(true);
+    result ? dispatch(increasePoints()) : setLoose(true);
+  }
+
+  function handleInputSumbit(keyword) {
+    if (userAnswer.answered) return;
+    const result =
+      keyword.toLowerCase() === answer.name.common.toLowerCase() ||
+      keyword.toLowerCase() === answer.translations.spa.common.toLowerCase();
+    setUserAnswered({
+      answered: true,
+      answeredCorrectly: result,
+      answeredCountry: keyword,
+    });
+    if (result) {
+      dispatch(increasePoints());
+    } else if (lives - 1 > 0) {
+      dispatch(decreaseLives());
+    } else {
+      setLoose(true);
+    }
   }
 
   if (gameLoose) {
-    return <LooseContainer score={userPoints} onClick={resetGame} />;
+    return <LooseContainer onClick={resetGame} />;
   }
 
   if (answer) {
@@ -106,14 +140,18 @@ export function GameContainer() {
             </p>
           </div>
         </div>
-        <section className="flex flex-col gap-4">
-          <OptionsContainer
-            handleClick={handleClick}
-            options={options}
-            answer={answer}
-            userAnswer={userAnswer}
-          />
-        </section>
+        {difficulty ? (
+          <CountryInput sumbit={handleInputSumbit} />
+        ) : (
+          <section className="flex flex-col gap-4">
+            <OptionsContainer
+              handleClick={handleSumbit}
+              options={options}
+              answer={answer}
+              userAnswer={userAnswer}
+            />
+          </section>
+        )}
         <button
           className={`px-4 py-2 font-bold bg-green-500 text-green-100 border-2 border-green-500 rounded transition-transform absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 ${
             userAnswer.answered ? "scale-100" : "scale-0"

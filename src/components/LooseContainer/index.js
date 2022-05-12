@@ -1,8 +1,10 @@
+import { useSelector } from "react-redux";
 import svg from "../../assets/icons/win.svg";
 import { useText } from "../../hooks/useText";
 
-export function LooseContainer({ score, onClick }) {
+export function LooseContainer({ onClick }) {
   const text = useText();
+  const score = useSelector((state) => state.user.points);
 
   return (
     <div className="flex flex-col w-full items-center gap-12">

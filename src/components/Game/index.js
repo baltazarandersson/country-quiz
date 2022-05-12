@@ -7,7 +7,7 @@ export function Game() {
   const inGame = useSelector((state) => state.ui.inGame);
 
   return (
-    <div className="flex flex-col gap-8 w-full p-8 bg-slate-50 rounded-xl relative">
+    <div className="flex flex-col gap-8 w-full p-8 bg-slate-50 sm:rounded-xl relative">
       {!inGame ? (
         <Menu />
       ) : loading ? (
