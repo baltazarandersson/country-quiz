@@ -13,7 +13,8 @@ export function LooseContainer({ onClick }) {
         <h2 className="text-5xl font-bold text-slate-700">
           {text.looseContainer.title}
         </h2>
-        <p className="text-xl text-slate-700">
+
+        <p className="text-xl text-slate-700 text-center ">
           {text.looseContainer.subtitle.first}{" "}
           <span className="text-4xl font-bold text-green-400">{score}</span>{" "}
           {text.looseContainer.subtitle.second}
