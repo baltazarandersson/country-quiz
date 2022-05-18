@@ -16,7 +16,6 @@ export function CountryInput({ sumbit }) {
         onSubmit={(e) => {
           e.preventDefault();
           sumbit(keyword);
-          console.log(e);
           e.target.value = "";
           inputRef.current.value = "";
           setKeyword("");

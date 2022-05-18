@@ -88,10 +88,10 @@ export function GameContainer() {
     const answeredCorrectly = option === answer;
     if (answeredCorrectly) {
       setRoundState({
+        ...roundState,
         answered: true,
         answeredCorrectly: true,
         answeredCountry: option,
-        gameLoose: false,
       });
       dispatch(increasePoints());
     } else {
@@ -104,33 +104,33 @@ export function GameContainer() {
     }
   }
 
-  function handleInputSumbit(keyword) {
+  function handleInputSumbit(option) {
     if (roundState.answered) return;
     const result =
-      keyword.toLowerCase() === answer.name.common.toLowerCase() ||
-      keyword.toLowerCase() === answer.translations.spa.common.toLowerCase();
+      option.toLowerCase() === answer.name.common.toLowerCase() ||
+      option.toLowerCase() === answer.translations.spa.common.toLowerCase();
 
     if (result) {
       setRoundState({
+        ...roundState,
         answered: true,
         answeredCorrectly: true,
-        answeredCountry: keyword,
-        gameLoose: false,
+        answeredCountry: option,
       });
       dispatch(increasePoints());
     } else if (lives - 1 > 0) {
       setRoundState({
+        ...roundState,
         answered: true,
         answeredCorrectly: false,
-        answeredCountry: keyword,
-        gameLoose: false,
+        answeredCountry: option,
       });
       dispatch(decreaseLives());
     } else {
       setRoundState({
         answered: true,
         answeredCorrectly: false,
-        answeredCountry: keyword,
+        answeredCountry: option,
         gameLoose: true,
       });
     }
