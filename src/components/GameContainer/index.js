@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { getAllCountries } from "../../services/getAllCountries";
 import { LooseContainer } from "../LooseContainer";
 import svg from "../../assets/icons/globe.svg";
 import { OptionsContainer } from "../OptionsContainer";
@@ -18,10 +17,14 @@ export function GameContainer() {
   const difficulty = useSelector((state) => state.user.difficulty);
   const countriesData = useSelector((state) => state.countries.list);
   const lives = useSelector((state) => state.user.remainingLives);
-  const [userAnswer, setUserAnswered] = useState({});
+  const [roundState, setRoundState] = useState({
+    answered: false,
+    answeredCorrectly: undefined,
+    answeredCountry: undefined,
+    gameLoose: false,
+  });
   const [answer, setAnswer] = useState();
   const [options, setOptions] = useState([]);
-  const [gameLoose, setLoose] = useState(false);
   const text = useText();
   const dispatch = useDispatch();
 
@@ -37,23 +40,31 @@ export function GameContainer() {
 
   function nextRound() {
     setAnswer(randomCountry());
+    setRoundState({
+      answered: false,
+      answeredCorrectly: undefined,
+      answeredCountry: undefined,
+      gameLoose: false,
+    });
   }
 
   function generateOptions() {
-    let newOptions = new Array(4);
-    const answerPosition = Math.floor(Math.random() * 4);
-    newOptions[answerPosition] = answer;
-    for (let i = 0; i <= 3; i++) {
-      if (i === answerPosition) {
-        continue;
+    const newOptions = [];
+
+    for (let index = 0; index < 4; index++) {
+      let newCountry = randomCountry();
+      if (
+        newOptions.findIndex(
+          (el) => el.name.common === newCountry.name.common
+        ) === -1
+      ) {
+        newCountry = randomCountry();
       }
-      let generatedCountry = randomCountry();
-      while (generatedCountry.name.common === answer.name.common) {
-        generatedCountry = randomCountry();
-      }
-      newOptions[i] = generatedCountry;
+      newOptions[index] = newCountry;
     }
 
+    const answerPosition = Math.floor(Math.random() * 4);
+    newOptions[answerPosition] = answer;
     setOptions(newOptions);
   }
 
@@ -64,56 +75,68 @@ export function GameContainer() {
   }
 
   function resetGame() {
-    setUserAnswered({
-      answered: false,
-      answeredCorrectly: undefined,
-      answeredCountry: undefined,
-    });
     dispatch(resetPoints());
     dispatch(resetLives());
     nextRound();
-    setLoose(false);
   }
 
   function handleNextRound() {
     nextRound();
-    setUserAnswered({
-      answered: false,
-      answeredCorrectly: undefined,
-      answeredCountry: undefined,
-    });
   }
 
   function handleSumbit(option) {
-    const result = option === answer;
-    setUserAnswered({
-      answered: true,
-      answeredCorrectly: result,
-      answeredCountry: option,
-    });
-    result ? dispatch(increasePoints()) : setLoose(true);
-  }
-
-  function handleInputSumbit(keyword) {
-    if (userAnswer.answered) return;
-    const result =
-      keyword.toLowerCase() === answer.name.common.toLowerCase() ||
-      keyword.toLowerCase() === answer.translations.spa.common.toLowerCase();
-    setUserAnswered({
-      answered: true,
-      answeredCorrectly: result,
-      answeredCountry: keyword,
-    });
-    if (result) {
+    const answeredCorrectly = option === answer;
+    if (answeredCorrectly) {
+      setRoundState({
+        answered: true,
+        answeredCorrectly: true,
+        answeredCountry: option,
+        gameLoose: false,
+      });
       dispatch(increasePoints());
-    } else if (lives - 1 > 0) {
-      dispatch(decreaseLives());
     } else {
-      setLoose(true);
+      setRoundState({
+        answered: true,
+        answeredCorrectly: false,
+        answeredCountry: option,
+        gameLoose: true,
+      });
     }
   }
 
-  if (gameLoose) {
+  function handleInputSumbit(keyword) {
+    if (roundState.answered) return;
+    const result =
+      keyword.toLowerCase() === answer.name.common.toLowerCase() ||
+      keyword.toLowerCase() === answer.translations.spa.common.toLowerCase();
+
+    if (result) {
+      setRoundState({
+        answered: true,
+        answeredCorrectly: true,
+        answeredCountry: keyword,
+        gameLoose: false,
+      });
+      dispatch(increasePoints());
+    } else if (lives - 1 > 0) {
+      setRoundState({
+        answered: true,
+        answeredCorrectly: false,
+        answeredCountry: keyword,
+        gameLoose: false,
+      });
+      dispatch(decreaseLives());
+    } else {
+      setRoundState({
+        answered: true,
+        answeredCorrectly: false,
+        answeredCountry: keyword,
+        gameLoose: true,
+      });
+    }
+  }
+
+  if (roundState.gameLoose) {
     return <LooseContainer onClick={resetGame} />;
   }
 
@@ -148,13 +171,13 @@ export function GameContainer() {
               handleClick={handleSumbit}
               options={options}
               answer={answer}
-              userAnswer={userAnswer}
+              roundState={roundState}
             />
           </section>
         )}
         <button
           className={`px-4 py-2 font-bold bg-green-500 text-green-100 border-2 border-green-500 rounded transition-transform absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 ${
-            userAnswer.answered ? "scale-100" : "scale-0"
+            roundState.answered ? "scale-100" : "scale-0"
           }`}
           onClick={handleNextRound}
         >
