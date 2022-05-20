@@ -50,16 +50,21 @@ export function GameContainer() {
 
   function generateOptions() {
     const newOptions = [];
+    const countryList = [...countriesData];
+
+    const answerIdx = countryList.findIndex((country) => {
+      return country.name.common === answer.name.common;
+    });
+    countryList.splice(answerIdx, 1);
 
     for (let index = 0; index < 4; index++) {
-      let newCountry = randomCountry();
-      if (
-        newOptions.findIndex(
-          (el) => el.name.common === newCountry.name.common
-        ) === -1
-      ) {
-        newCountry = randomCountry();
-      }
+      let newCountry = randomCountry(countryList);
+      const newCountryIdx = countryList.findIndex((country) => {
+        return country.name.common === newCountry.name.common;
+      });
+
+      countryList.splice(newCountryIdx, 1);
+
       newOptions[index] = newCountry;
     }
 
@@ -68,9 +73,8 @@ export function GameContainer() {
     setOptions(newOptions);
   }
 
-  function randomCountry() {
-    const country =
-      countriesData[Math.floor(Math.random() * countriesData.length)];
+  function randomCountry(list = countriesData) {
+    const country = list[Math.floor(Math.random() * list.length)];
     return country;
   }
 
