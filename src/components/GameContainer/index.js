@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LooseContainer } from "../LooseContainer";
 import svg from "../../assets/icons/globe.svg";
 import { OptionsContainer } from "../OptionsContainer";
@@ -21,22 +21,12 @@ export function GameContainer() {
     answered: false,
     answeredCorrectly: undefined,
     answeredCountry: undefined,
-    gameLoose: false,
+    lostRound: false,
   });
   const [answer, setAnswer] = useState();
   const [options, setOptions] = useState([]);
   const text = useText();
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    setAnswer(randomCountry());
-  }, [countriesData]);
-
-  useEffect(() => {
-    if (answer) {
-      generateOptions();
-    }
-  }, [answer]);
 
   function nextRound() {
     setAnswer(randomCountry());
@@ -44,11 +34,19 @@ export function GameContainer() {
       answered: false,
       answeredCorrectly: undefined,
       answeredCountry: undefined,
-      gameLoose: false,
+      lostRound: false,
     });
   }
 
-  function generateOptions() {
+  const randomCountry = useCallback(
+    (list = countriesData) => {
+      const country = list[Math.floor(Math.random() * list.length)];
+      return country;
+    },
+    [countriesData]
+  );
+
+  const generateOptions = useCallback(() => {
     const newOptions = [];
     const countryList = [...countriesData];
 
@@ -71,12 +69,7 @@ export function GameContainer() {
     const answerPosition = Math.floor(Math.random() * 4);
     newOptions[answerPosition] = answer;
     setOptions(newOptions);
-  }
-
-  function randomCountry(list = countriesData) {
-    const country = list[Math.floor(Math.random() * list.length)];
-    return country;
-  }
+  }, [answer, countriesData, randomCountry]);
 
   function resetGame() {
     dispatch(resetPoints());
@@ -84,28 +77,32 @@ export function GameContainer() {
     nextRound();
   }
 
+  useEffect(() => {
+    setAnswer(randomCountry());
+  }, [countriesData, randomCountry]);
+
+  useEffect(() => {
+    if (answer) {
+      generateOptions();
+    }
+  }, [answer, generateOptions]);
+
   function handleNextRound() {
-    nextRound();
+    if (roundState.answeredCorrectly) return nextRound();
+
+    setRoundState((state) => ({ ...state, lostRound: true }));
   }
 
   function handleSumbit(option) {
     const answeredCorrectly = option === answer;
-    if (answeredCorrectly) {
-      setRoundState({
-        ...roundState,
-        answered: true,
-        answeredCorrectly: true,
-        answeredCountry: option,
-      });
-      dispatch(increasePoints());
-    } else {
-      setRoundState({
-        answered: true,
-        answeredCorrectly: false,
-        answeredCountry: option,
-        gameLoose: true,
-      });
-    }
+
+    setRoundState({
+      ...roundState,
+      answered: true,
+      answeredCorrectly,
+      answeredCountry: option,
+    });
+    dispatch(increasePoints());
   }
 
   function handleInputSumbit(option) {
@@ -126,7 +123,7 @@ export function GameContainer() {
       setRoundState({
         ...roundState,
         answered: true,
-        answeredCorrectly: false,
+        answeredCorrectly: true,
         answeredCountry: option,
       });
       dispatch(decreaseLives());
@@ -135,12 +132,12 @@ export function GameContainer() {
         answered: true,
         answeredCorrectly: false,
         answeredCountry: option,
-        gameLoose: true,
+        lostRound: true,
       });
     }
   }
 
-  if (roundState.gameLoose) {
+  if (roundState.lostRound) {
     return <LooseContainer onClick={resetGame} />;
   }
 
@@ -148,21 +145,21 @@ export function GameContainer() {
     return (
       <>
         <img
-          className="w-1/3 absolute right-0 top-0 -translate-y-1/2"
+          className="absolute top-0 right-0 w-1/3 -translate-y-1/2"
           src={svg}
           alt="icon"
         />
         <div className="flex flex-col gap-2">
           <img
-            className="h-16 w-fit shadow-lg"
+            className="h-16 shadow-lg w-fit"
             src={answer.flags.png}
             alt="flag"
           />
-          <div className="w-full flex justify-between items-end">
-            <h2 className="text-lg sm:text-2xl font-bold text-slate-700">
+          <div className="flex items-end justify-between w-full">
+            <h2 className="text-lg font-bold sm:text-2xl text-slate-700">
               {text.gameContainer.title}
             </h2>
-            <p className="text-md sm:text-lg font-semibold text-slate-400">
+            <p className="font-semibold text-md sm:text-lg text-slate-400">
               {text.gameContainer.points} {userPoints}
             </p>
           </div>
@@ -185,7 +182,9 @@ export function GameContainer() {
           }`}
           onClick={handleNextRound}
         >
-          {text.gameContainer.button}
+          {roundState.answeredCorrectly
+            ? text.gameContainer.button
+            : "See results"}
         </button>
       </>
     );
