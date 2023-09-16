@@ -5,14 +5,15 @@ import { fetchCountries } from "./slices/countries";
 
 function App() {
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(fetchCountries());
-  }, []);
+  }, [dispatch]);
 
   return (
-    <div className="min-w-full min-h-full flex items-center justify-center">
+    <div className="flex items-center justify-center min-w-full min-h-full">
       <section className="flex flex-col items-start gap-4 min-w-full sm:min-w-[40%]">
-        <h1 className="text-slate-50 font-bold text-2xl ml-8 sm:ml-0 sm:text-4xl">
+        <h1 className="ml-8 text-2xl font-bold text-slate-50 sm:ml-0 sm:text-4xl">
           COUNTRY QUIZ
         </h1>
 

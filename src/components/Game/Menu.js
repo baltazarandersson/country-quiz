@@ -23,7 +23,7 @@ export function Menu() {
 
   return (
     <>
-      <h2 className="text-lg sm:text-2xl font-bold text-slate-700">
+      <h2 className="text-lg font-bold sm:text-2xl text-slate-700">
         {text.menu.title}
       </h2>
       <Switch
@@ -43,11 +43,11 @@ export function Menu() {
         selected={difficulty}
         optionA={{
           name: "Normal",
-          payload: 0,
+          payload: 1,
         }}
         optionB={{
           name: "Hard",
-          payload: 1,
+          payload: 2,
         }}
       />
       <button

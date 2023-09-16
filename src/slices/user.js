@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   language: "EN",
-  difficulty: 0,
+  difficulty: 1,
   points: 0,
   remainingLives: 5,
 };

@@ -102,7 +102,8 @@ export function GameContainer() {
       answeredCorrectly,
       answeredCountry: option,
     });
-    dispatch(increasePoints());
+
+    answeredCorrectly && dispatch(increasePoints());
   }
 
   function handleInputSumbit(option) {
@@ -164,9 +165,7 @@ export function GameContainer() {
             </p>
           </div>
         </div>
-        {difficulty ? (
-          <CountryInput sumbit={handleInputSumbit} />
-        ) : (
+        {difficulty === 1 ? (
           <section className="flex flex-col gap-4">
             <OptionsContainer
               handleClick={handleSumbit}
@@ -175,6 +174,8 @@ export function GameContainer() {
               roundState={roundState}
             />
           </section>
+        ) : (
+          <CountryInput sumbit={handleInputSumbit} />
         )}
         <button
           className={`px-4 py-2 font-bold bg-green-500 text-green-100 border-2 border-green-500 rounded transition-transform absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 ${
